@@ -1,5 +1,8 @@
 import { ChatOllama } from "@langchain/community/chat_models/ollama";
+import { ChatAnthropic } from "@langchain/anthropic";
+import { ChatOpenAI } from "@langchain/openai";
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
+import type { BaseChatModel } from "@langchain/core/language_models/chat_models";
 
 const LLM_TIMEOUT_MS = 90_000;
 
@@ -10,6 +13,45 @@ export function createLLM(model?: string, baseUrl?: string) {
     temperature: 0.3,
     numCtx: 4096,
   });
+}
+
+export function createLLMForUser(
+  provider: string,
+  apiKey: string,
+  model: string
+): BaseChatModel {
+  switch (provider) {
+    case "ollama":
+      return new ChatOllama({
+        baseUrl: process.env.OLLAMA_BASE_URL || "http://127.0.0.1:11434",
+        model,
+        temperature: 0.3,
+        numCtx: 4096,
+      });
+    case "anthropic":
+      return new ChatAnthropic({
+        anthropicApiKey: apiKey,
+        modelName: model,
+        temperature: 0.3,
+      });
+    case "openai":
+      return new ChatOpenAI({
+        openAIApiKey: apiKey,
+        modelName: model,
+        temperature: 0.3,
+      });
+    case "xai":
+      return new ChatOpenAI({
+        openAIApiKey: apiKey,
+        modelName: model,
+        temperature: 0.3,
+        configuration: {
+          baseURL: "https://api.x.ai/v1",
+        },
+      });
+    default:
+      throw new Error(`Unsupported LLM provider: ${provider}`);
+  }
 }
 
 function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
@@ -25,9 +67,12 @@ function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise
 export async function invokeLLM(
   systemPrompt: string,
   userMessage: string,
-  model?: string
+  model?: string,
+  llmConfig?: { provider: string; apiKey: string; model: string }
 ): Promise<string> {
-  const llm = createLLM(model);
+  const llm = llmConfig
+    ? createLLMForUser(llmConfig.provider, llmConfig.apiKey, llmConfig.model)
+    : createLLM(model);
   const response = await withTimeout(
     llm.invoke([
       new SystemMessage(systemPrompt),

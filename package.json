@@ -14,8 +14,10 @@
     "db:migrate": "supabase db push"
   },
   "dependencies": {
+    "@langchain/anthropic": "^0.3.0",
     "@langchain/community": "^0.3.0",
     "@langchain/core": "^0.3.0",
+    "@langchain/openai": "^0.3.0",
     "@langchain/langgraph": "^0.2.0",
     "@opennextjs/cloudflare": "^1.0.0",
     "@supabase/supabase-js": "^2.45.0",
