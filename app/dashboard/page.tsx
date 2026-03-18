@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createBrowserClient } from "@/lib/supabase";
 
@@ -24,20 +25,30 @@ export default function DashboardPage() {
   const [messages, setMessages] = useState<AgentMessage[]>([]);
   const [isRunning, setIsRunning] = useState(false);
   const [user, setUser] = useState<{ email: string } | null>(null);
+  const [loading, setLoading] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
   const supabase = createBrowserClient();
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
       if (data.user) {
         setUser({ email: data.user.email || "" });
+      } else {
+        router.push("/auth");
       }
+      setLoading(false);
     });
   }, []);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  async function handleSignOut() {
+    await supabase.auth.signOut();
+    router.push("/");
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -49,12 +60,7 @@ export default function DashboardPage() {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
-        setMessages([{
-          agent: "system",
-          content: "Not authenticated. Please sign in.",
-          timestamp: new Date().toISOString(),
-        }]);
-        setIsRunning(false);
+        router.push("/auth");
         return;
       }
 
@@ -109,11 +115,12 @@ export default function DashboardPage() {
     }
   }
 
-  async function handleSignIn() {
-    await supabase.auth.signInWithOAuth({
-      provider: "github",
-      options: { redirectTo: `${window.location.origin}/api/auth/callback` },
-    });
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-bg-primary flex items-center justify-center">
+        <span className="text-text-secondary text-sm">Loading...</span>
+      </div>
+    );
   }
 
   return (
@@ -128,15 +135,16 @@ export default function DashboardPage() {
             <Link href="/settings" className="text-text-secondary hover:text-text-primary transition-colors">
               Settings
             </Link>
-            {user ? (
-              <span className="text-text-secondary">{user.email}</span>
-            ) : (
-              <button
-                onClick={handleSignIn}
-                className="bg-accent text-bg-primary px-4 py-2 text-sm font-medium hover:bg-accent-hover transition-colors"
-              >
-                Sign In
-              </button>
+            {user && (
+              <div className="flex items-center gap-4">
+                <span className="text-text-secondary">{user.email}</span>
+                <button
+                  onClick={handleSignOut}
+                  className="text-text-secondary hover:text-text-primary transition-colors"
+                >
+                  Sign Out
+                </button>
+              </div>
             )}
           </div>
         </div>
@@ -156,13 +164,13 @@ export default function DashboardPage() {
               onChange={(e) => setGoal(e.target.value)}
               placeholder="Grow my Shopify revenue 30% this quarter..."
               rows={3}
-              className="w-full bg-bg-secondary border border-border px-4 py-3 text-text-primary placeholder-text-secondary/50 text-sm focus:outline-none focus:border-accent resize-none"
+              className="w-full bg-bg-secondary border border-border rounded-2xl px-5 py-4 text-text-primary placeholder-text-secondary/50 text-sm focus:outline-none focus:border-accent transition-colors resize-none"
               disabled={isRunning}
             />
             <button
               type="submit"
               disabled={isRunning || !goal.trim()}
-              className="bg-accent text-bg-primary px-8 py-3 text-sm font-semibold hover:bg-accent-hover transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              className="bg-accent text-bg-primary px-8 py-3 rounded-xl text-sm font-semibold hover:bg-accent-hover transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             >
               {isRunning ? "Team is working..." : "Deploy Team"}
             </button>
@@ -171,8 +179,8 @@ export default function DashboardPage() {
 
         {/* Agent Output Stream */}
         {messages.length > 0 && (
-          <div className="border border-border bg-bg-secondary">
-            <div className="border-b border-border px-4 py-3 flex items-center justify-between">
+          <div className="border border-border bg-bg-secondary rounded-2xl overflow-hidden">
+            <div className="border-b border-border px-5 py-3 flex items-center justify-between">
               <span className="text-xs text-text-secondary font-medium uppercase tracking-widest">
                 Team Activity
               </span>
@@ -180,7 +188,7 @@ export default function DashboardPage() {
                 <span className="text-xs text-accent animate-pulse">Live</span>
               )}
             </div>
-            <div className="p-4 max-h-[500px] overflow-y-auto font-mono text-sm space-y-1">
+            <div className="p-5 max-h-[500px] overflow-y-auto font-mono text-sm space-y-1">
               {messages.map((msg, i) => (
                 <div key={i} className="flex gap-3">
                   <span className={`shrink-0 w-28 text-right ${agentColors[msg.agent] || "text-text-secondary"}`}>

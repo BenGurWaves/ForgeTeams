@@ -1,37 +1,48 @@
 import { ChatOllama } from "@langchain/community/chat_models/ollama";
-import { StringOutputParser } from "@langchain/core/output_parsers";
-import { ChatPromptTemplate } from "@langchain/core/prompts";
+import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 
-// Ollama LLM — default local dev model
+const LLM_TIMEOUT_MS = 90_000;
+
 export function createLLM(model?: string, baseUrl?: string) {
   return new ChatOllama({
     baseUrl: baseUrl || process.env.OLLAMA_BASE_URL || "http://127.0.0.1:11434",
-    model: model || process.env.OLLAMA_MODEL || "qwen3-coder:latest",
+    model: model || process.env.OLLAMA_MODEL || "qwen3.5:4b",
     temperature: 0.3,
+    numCtx: 4096,
   });
 }
 
-// Output parser
-const outputParser = new StringOutputParser();
+function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error(`${label} timed out after ${ms / 1000}s`)), ms)
+    ),
+  ]);
+}
 
-// Helper: invoke LLM with a system prompt and user message
+// Invoke LLM with direct messages — no ChatPromptTemplate to avoid curly-brace escaping issues
 export async function invokeLLM(
   systemPrompt: string,
   userMessage: string,
   model?: string
 ): Promise<string> {
   const llm = createLLM(model);
-  const prompt = ChatPromptTemplate.fromMessages([
-    ["system", systemPrompt],
-    ["human", "{input}"],
-  ]);
-  const chain = prompt.pipe(llm).pipe(outputParser);
-  return chain.invoke({ input: userMessage });
+  const response = await withTimeout(
+    llm.invoke([
+      new SystemMessage(systemPrompt),
+      new HumanMessage(userMessage),
+    ]),
+    LLM_TIMEOUT_MS,
+    "LLM call"
+  );
+  return typeof response.content === "string"
+    ? response.content
+    : JSON.stringify(response.content);
 }
 
 // ============================================================
 // SHOPIFY STUB TOOLS
-// These return mock data. Replace with real Shopify API calls later.
 // ============================================================
 
 export async function shopifyGetProducts(): Promise<object[]> {
@@ -48,7 +59,6 @@ export async function shopifyUpdatePrice(
   productId: string,
   newPrice: number
 ): Promise<{ success: boolean; message: string }> {
-  // Stub: log and return success
   console.log(`[STUB] Updating price for ${productId} to $${newPrice}`);
   return {
     success: true,
@@ -63,12 +73,7 @@ export async function shopifyGetAnalytics(): Promise<object> {
     avg_order_value: 131.44,
     conversion_rate: 0.032,
     top_product: "Minimalist Watch",
-    traffic_sources: {
-      organic: 45,
-      direct: 28,
-      social: 18,
-      email: 9,
-    },
+    traffic_sources: { organic: 45, direct: 28, social: 18, email: 9 },
   };
 }
 
@@ -77,10 +82,7 @@ export async function shopifySendEmail(
   segment: string
 ): Promise<{ success: boolean; message: string }> {
   console.log(`[STUB] Sending email "${subject}" to segment: ${segment}`);
-  return {
-    success: true,
-    message: `Email "${subject}" queued for ${segment} segment (stub)`,
-  };
+  return { success: true, message: `Email "${subject}" queued for ${segment} segment (stub)` };
 }
 
 export async function shopifyCreateDiscount(
@@ -88,10 +90,7 @@ export async function shopifyCreateDiscount(
   percentage: number
 ): Promise<{ success: boolean; message: string }> {
   console.log(`[STUB] Creating discount ${code} for ${percentage}%`);
-  return {
-    success: true,
-    message: `Discount ${code} (${percentage}% off) created (stub)`,
-  };
+  return { success: true, message: `Discount ${code} (${percentage}% off) created (stub)` };
 }
 
 // ============================================================
@@ -99,41 +98,18 @@ export async function shopifyCreateDiscount(
 // ============================================================
 
 export async function webSearch(query: string): Promise<object[]> {
-  // Stub: returns mock search results
   console.log(`[STUB] Web search: "${query}"`);
   return [
-    {
-      title: `Market analysis: ${query}`,
-      snippet: "Industry data suggests 15-20% growth in premium ecommerce segments. Price sensitivity decreasing for quality-focused brands.",
-      url: "https://example.com/market-report",
-    },
-    {
-      title: `Competitor pricing for ${query}`,
-      snippet: "Top competitors pricing similar items 10-25% higher with bundle strategies. Free shipping threshold at $75 appears optimal.",
-      url: "https://example.com/competitor-data",
-    },
-    {
-      title: `Consumer trends: ${query}`,
-      snippet: "Q1 2026 shows strong demand for minimalist accessories. Social proof and limited editions driving 40% higher conversion.",
-      url: "https://example.com/trends",
-    },
+    { title: `Market analysis: ${query}`, snippet: "15-20% growth in premium ecommerce. Price sensitivity decreasing for quality brands.", url: "https://example.com/market" },
+    { title: `Competitor pricing`, snippet: "Top competitors price 10-25% higher with bundles. Free shipping at $75 is optimal.", url: "https://example.com/competitors" },
+    { title: `Consumer trends`, snippet: "Q1 2026: strong demand for minimalist accessories. Social proof +40% conversion.", url: "https://example.com/trends" },
   ];
 }
 
-export async function ragSearch(
-  query: string,
-  _userId?: string
-): Promise<object[]> {
-  // Stub: would search pgvector memory in production
+export async function ragSearch(query: string, _userId?: string): Promise<object[]> {
   console.log(`[STUB] RAG search: "${query}"`);
   return [
-    {
-      content: "Previous campaign in Q4 showed 22% revenue lift from bundling top 3 products.",
-      similarity: 0.89,
-    },
-    {
-      content: "Customer feedback indicates price sensitivity above $150 for accessories.",
-      similarity: 0.82,
-    },
+    { content: "Q4 campaign: 22% revenue lift from bundling top 3 products.", similarity: 0.89 },
+    { content: "Price sensitivity above $150 for accessories.", similarity: 0.82 },
   ];
 }

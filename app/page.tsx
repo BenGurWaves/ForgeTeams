@@ -95,8 +95,8 @@ export default function LandingPage() {
               Testimonials
             </a>
             <Link
-              href="/dashboard"
-              className="bg-accent text-bg-primary px-5 py-2 text-sm font-medium hover:bg-accent-hover transition-colors"
+              href="/auth"
+              className="bg-accent text-bg-primary px-5 py-2 rounded-xl text-sm font-medium hover:bg-accent-hover transition-colors"
             >
               Get Started
             </Link>
@@ -119,14 +119,14 @@ export default function LandingPage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in-delay-1">
             <Link
-              href="/dashboard"
-              className="bg-accent text-bg-primary px-8 py-3.5 text-sm font-semibold hover:bg-accent-hover transition-colors"
+              href="/auth"
+              className="bg-accent text-bg-primary px-8 py-3.5 rounded-xl text-sm font-semibold hover:bg-accent-hover transition-colors"
             >
               Get Started
             </Link>
             <a
               href="#how"
-              className="border border-border text-text-secondary px-8 py-3.5 text-sm font-medium hover:text-text-primary hover:border-text-secondary transition-colors"
+              className="border border-border text-text-secondary px-8 py-3.5 rounded-xl text-sm font-medium hover:text-text-primary hover:border-text-secondary transition-colors"
             >
               See How It Works
             </a>
@@ -150,11 +150,11 @@ export default function LandingPage() {
               no wasted effort, no dropped context.
             </p>
           </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-px bg-border">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
             {agents.map((agent) => (
               <div
                 key={agent.name}
-                className="bg-bg-secondary p-8 hover:bg-bg-primary transition-colors group"
+                className="bg-bg-secondary border border-border rounded-2xl p-8 hover:border-accent/30 transition-colors group"
               >
                 <span className="text-accent text-xs font-medium tracking-widest">
                   {agent.icon}
@@ -167,8 +167,7 @@ export default function LandingPage() {
                 </p>
               </div>
             ))}
-            {/* Empty cell for grid balance */}
-            <div className="bg-bg-secondary p-8 hidden lg:flex items-center justify-center">
+            <div className="bg-bg-secondary border border-border rounded-2xl p-8 hidden lg:flex items-center justify-center">
               <p className="text-text-secondary text-sm italic">
                 More agents coming soon.
               </p>
@@ -188,9 +187,9 @@ export default function LandingPage() {
               Three steps. Zero complexity.
             </h2>
           </div>
-          <div className="space-y-16">
+          <div className="space-y-6">
             {steps.map((s) => (
-              <div key={s.step} className="flex gap-8 items-start">
+              <div key={s.step} className="flex gap-8 items-start bg-bg-secondary border border-border rounded-2xl p-8">
                 <span className="text-accent font-heading text-4xl font-bold opacity-40 shrink-0 w-16">
                   {s.step}
                 </span>
@@ -222,11 +221,11 @@ export default function LandingPage() {
               Quietly effective.
             </h2>
           </div>
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-3 gap-6">
             {testimonials.map((t) => (
               <div
                 key={t.name}
-                className="border border-border p-8 bg-bg-secondary"
+                className="border border-border rounded-2xl p-8 bg-bg-secondary"
               >
                 <p className="text-text-secondary text-sm leading-relaxed mb-8">
                   &ldquo;{t.quote}&rdquo;
@@ -251,8 +250,8 @@ export default function LandingPage() {
             Set a goal. Let five agents handle the rest.
           </p>
           <Link
-            href="/dashboard"
-            className="inline-block bg-accent text-bg-primary px-10 py-4 text-sm font-semibold hover:bg-accent-hover transition-colors"
+            href="/auth"
+            className="inline-block bg-accent text-bg-primary px-10 py-4 rounded-xl text-sm font-semibold hover:bg-accent-hover transition-colors"
           >
             Get Started
           </Link>
