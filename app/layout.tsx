@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 
+// Safe: jsonLd is a compile-time constant with no user input
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
@@ -48,15 +49,13 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
           rel="stylesheet"
         />
-        {/* JSON-LD structured data — static content, safe for inline script */}
         <script
           type="application/ld+json"
           suppressHydrationWarning
-          // Safe: jsonLd is a compile-time constant with no user input
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       </head>
-      <body className="bg-bg-primary text-text-primary font-body antialiased">
+      <body className="bg-forge-bg text-forge-text font-body antialiased">
         {children}
       </body>
     </html>

@@ -199,7 +199,7 @@ Max 3 actions. No explanation, just the JSON array.`,
       let result;
       switch (action.type) {
         case "update_price":
-          result = await shopifyUpdatePrice(action.params.product_id, action.params.new_price);
+          result = await shopifyUpdatePrice(action.params.product_id, String(action.params.new_price));
           break;
         case "send_email":
           result = await shopifySendEmail(action.params.subject, action.params.segment);

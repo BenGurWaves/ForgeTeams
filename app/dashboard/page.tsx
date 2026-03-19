@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { createBrowserClient } from "@/lib/supabase";
 import ConnectShopifyButton from "@/components/ConnectShopifyButton";
 import ConnectApiKeyForm from "@/components/ConnectApiKeyForm";
+import AgentRunDisplay from "@/components/AgentRunDisplay";
 
 interface AgentMessage {
   agent: string;
@@ -37,14 +38,6 @@ interface Subscription {
   status: string;
 }
 
-const agentColors: Record<string, string> = {
-  supervisor: "text-accent",
-  planner: "text-blue-400",
-  researcher: "text-emerald-400",
-  executor: "text-orange-400",
-  reviewer: "text-purple-400",
-};
-
 const statusColors: Record<string, string> = {
   pending: "text-text-secondary bg-text-secondary/10",
   running: "text-accent bg-accent/10",
@@ -66,7 +59,6 @@ export default function DashboardPage() {
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [recentGoals, setRecentGoals] = useState<RecentGoal[]>([]);
 
-  const messagesEndRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = createBrowserClient();
@@ -130,10 +122,6 @@ export default function DashboardPage() {
       return () => clearTimeout(timer);
     }
   }, [searchParams]);
-
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
 
   async function handleSignOut() {
     await supabase.auth.signOut();
@@ -385,32 +373,9 @@ export default function DashboardPage() {
           </form>
 
           {/* Agent Output Stream */}
-          {messages.length > 0 && (
-            <div className="mt-8 border border-border bg-bg-secondary rounded-2xl overflow-hidden">
-              <div className="border-b border-border px-5 py-3 flex items-center justify-between">
-                <span className="text-xs text-text-secondary font-medium uppercase tracking-widest">
-                  Team Activity
-                </span>
-                {isRunning && (
-                  <span className="text-xs text-accent animate-pulse">
-                    Live
-                  </span>
-                )}
-              </div>
-              <div className="p-5 max-h-[500px] overflow-y-auto font-mono text-sm space-y-1">
-                {messages.map((msg, i) => (
-                  <div key={i} className="flex gap-3">
-                    <span
-                      className={`shrink-0 w-28 text-right ${agentColors[msg.agent] || "text-text-secondary"}`}
-                    >
-                      {msg.agent}
-                    </span>
-                    <span className="text-text-secondary">|</span>
-                    <span className="text-text-primary">{msg.content}</span>
-                  </div>
-                ))}
-                <div ref={messagesEndRef} />
-              </div>
+          {(messages.length > 0 || isRunning) && (
+            <div className="mt-8">
+              <AgentRunDisplay messages={messages} isRunning={isRunning} />
             </div>
           )}
         </section>

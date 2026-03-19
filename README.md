@@ -16,7 +16,8 @@ Last updated: March 2026.
 - **Database:** Supabase (Postgres + pgvector + pgcrypto + Auth + Realtime)
 - **LLM:** Ollama (local dev) / BYOK (Anthropic, OpenAI, xAI)
 - **Payments:** Stripe (subscriptions + usage metering)
-- **Shopify:** Custom app OAuth (offline access tokens)
+- **Shopify:** Custom app OAuth + GraphQL Admin API (2026-01)
+- **Search:** Serper.dev (free tier, mock fallback for local dev)
 
 ---
 
@@ -54,6 +55,7 @@ Fill in your credentials:
 | `SHOPIFY_API_SECRET` | Shopify Partners > App > API credentials |
 | `STRIPE_SECRET_KEY` | Stripe dashboard > API keys |
 | `STRIPE_WEBHOOK_SECRET` | Stripe dashboard > Webhooks |
+| `SERPER_API_KEY` | Free at [serper.dev](https://serper.dev) (2,500 searches/mo) |
 
 ### 3. Run database migrations
 
@@ -79,15 +81,21 @@ Open the Supabase SQL Editor and run both migrations in order:
 3. Create webhook endpoint pointing to `http://localhost:3000/api/stripe/webhook`
 4. Events to listen for: `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`
 
-### 6. Pull an Ollama model
+### 6. Sign up for Serper.dev (optional, free)
+
+1. Go to [serper.dev](https://serper.dev) and create a free account
+2. Copy your API key to `SERPER_API_KEY` in `.env.local`
+3. Without the key, the Researcher agent uses mock search results (fine for local dev)
+
+### 7. Pull an Ollama model
 
 ```bash
-ollama pull qwen3.5:4b          # Fast, good for agent loops
-ollama pull qwen3-coder:latest  # Stronger coding
-ollama pull deepseek-r1:32b     # Heavy reasoning
+ollama pull qwen3.5:4b          # Fast, good for agent loops (~110 t/s)
+ollama pull qwen3-coder:latest  # Stronger coding (slower, 18GB)
+ollama pull deepseek-r1:32b     # Heavy reasoning (slowest)
 ```
 
-### 7. Start Ollama and dev server
+### 8. Start Ollama and dev server
 
 ```bash
 ollama serve
@@ -96,11 +104,20 @@ pnpm dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
-### 8. Test the agent team (standalone)
+### 9. Test the agent team (standalone)
 
 ```bash
 pnpm test:agents
 ```
+
+### 10. Test with a real Shopify store
+
+Once your Shopify app is connected:
+
+1. Sign in, connect your store in the dashboard
+2. Try a goal: "Analyze my product catalog and suggest pricing optimizations"
+3. With Serper key: "Research competitor pricing for leather wallets and adjust my prices"
+4. The Executor will make real API calls to your Shopify store (price updates, product queries)
 
 ---
 
@@ -125,15 +142,17 @@ ForgeTeams/
 │       ├── validate-provider/      POST: validates Ollama connection or API key format
 │       └── usage/                  GET: token usage stats
 ├── components/
+│   ├── AgentRunDisplay.tsx         Live streaming agent message feed
 │   ├── ConnectShopifyButton.tsx    Shopify store connection UI
 │   └── ConnectApiKeyForm.tsx       BYOK provider + key + model form
 ├── lib/
 │   ├── agents/
 │   │   ├── state.ts                Typed state (Zod schemas + LangGraph Annotation)
 │   │   ├── graph.ts                5-node LangGraph with conditional routing
-│   │   ├── tools.ts                BYOK LLM support + Ollama fallback + Shopify stubs
+│   │   ├── tools.ts                BYOK LLM + real Shopify GraphQL + Serper search
 │   │   └── test-ollama.ts          Standalone test script
 │   ├── encryption.ts               AES-256-GCM encrypt/decrypt for tokens and keys
+│   ├── shopify-graphql.ts          Typed Shopify GraphQL Admin API client (2026-01)
 │   └── supabase.ts                 Browser + server Supabase clients
 ├── supabase/
 │   └── migrations/

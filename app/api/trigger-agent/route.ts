@@ -5,6 +5,9 @@ import { z } from "zod";
 
 const TriggerSchema = z.object({
   goal: z.string().min(10, "Goal must be at least 10 characters").max(1000),
+  llmConfig: z
+    .object({ provider: z.string(), model: z.string() })
+    .optional(),
 });
 
 export async function POST(request: NextRequest) {

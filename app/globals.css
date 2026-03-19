@@ -1,6 +1,16 @@
 @import "tailwindcss";
 
 @theme {
+  /* Midnight Platinum — forge- prefix (canonical) */
+  --color-forge-bg: #0F0F0F;
+  --color-forge-surface: #151515;
+  --color-forge-text: #F5F5F5;
+  --color-forge-muted: #A0A0A0;
+  --color-forge-accent: #C9A96E;
+  --color-forge-accent-hover: #D4B98A;
+  --color-forge-border: #222222;
+
+  /* Legacy aliases — other components still reference these */
   --color-bg-primary: #0F0F0F;
   --color-bg-secondary: #151515;
   --color-text-primary: #F5F5F5;
@@ -9,6 +19,7 @@
   --color-accent-hover: #D4B98A;
   --color-border: #222222;
 
+  /* Fonts */
   --font-heading: "Neue Montreal", system-ui, -apple-system, sans-serif;
   --font-body: "Inter", system-ui, -apple-system, sans-serif;
 }
@@ -19,8 +30,8 @@ html {
 }
 
 body {
-  background-color: var(--color-bg-primary);
-  color: var(--color-text-primary);
+  background-color: var(--color-forge-bg);
+  color: var(--color-forge-text);
   font-family: var(--font-body);
   line-height: 1.7;
   -webkit-font-smoothing: antialiased;
@@ -37,7 +48,7 @@ h1, h2, h3, h4, h5, h6 {
 /* Selection */
 ::selection {
   background-color: rgba(201, 169, 110, 0.25);
-  color: var(--color-text-primary);
+  color: var(--color-forge-text);
 }
 
 /* Scrollbar */
@@ -45,14 +56,14 @@ h1, h2, h3, h4, h5, h6 {
   width: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--color-bg-primary);
+  background: var(--color-forge-bg);
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--color-border);
+  background: var(--color-forge-border);
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-text-secondary);
+  background: var(--color-forge-muted);
 }
 
 /* Fade-in animation */

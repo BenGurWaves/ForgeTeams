@@ -87,27 +87,81 @@ export async function invokeLLM(
 }
 
 // ============================================================
-// SHOPIFY STUB TOOLS
+// SHOPIFY TOOLS (real Shopify GraphQL with mock fallback)
 // ============================================================
 
-export async function shopifyGetProducts(): Promise<object[]> {
-  return [
-    { id: "prod_001", title: "Premium Leather Wallet", price: 89.99, inventory: 142 },
-    { id: "prod_002", title: "Canvas Tote Bag", price: 45.00, inventory: 78 },
-    { id: "prod_003", title: "Minimalist Watch", price: 199.00, inventory: 34 },
-    { id: "prod_004", title: "Merino Wool Scarf", price: 65.00, inventory: 201 },
-    { id: "prod_005", title: "Titanium Keychain", price: 32.00, inventory: 89 },
-  ];
+export async function shopifyGetProducts(
+  shopDomain?: string,
+  encryptedToken?: string
+): Promise<object[]> {
+  if (!shopDomain || !encryptedToken) {
+    return [
+      {
+        id: "gid://shopify/Product/1",
+        title: "Premium Leather Wallet",
+        variants: [
+          { id: "gid://shopify/ProductVariant/1", price: "89.99", inventoryQuantity: 142 },
+        ],
+      },
+      {
+        id: "gid://shopify/Product/2",
+        title: "Canvas Tote Bag",
+        variants: [
+          { id: "gid://shopify/ProductVariant/2", price: "45.00", inventoryQuantity: 78 },
+        ],
+      },
+      {
+        id: "gid://shopify/Product/3",
+        title: "Minimalist Watch",
+        variants: [
+          { id: "gid://shopify/ProductVariant/3", price: "199.00", inventoryQuantity: 34 },
+        ],
+      },
+      {
+        id: "gid://shopify/Product/4",
+        title: "Merino Wool Scarf",
+        variants: [
+          { id: "gid://shopify/ProductVariant/4", price: "65.00", inventoryQuantity: 201 },
+        ],
+      },
+      {
+        id: "gid://shopify/Product/5",
+        title: "Titanium Keychain",
+        variants: [
+          { id: "gid://shopify/ProductVariant/5", price: "32.00", inventoryQuantity: 89 },
+        ],
+      },
+    ];
+  }
+
+  const { getProducts } = await import("../shopify-graphql");
+  return getProducts(shopDomain, encryptedToken);
 }
 
 export async function shopifyUpdatePrice(
-  productId: string,
-  newPrice: number
+  variantId: string,
+  newPrice: string,
+  shopDomain?: string,
+  encryptedToken?: string
 ): Promise<{ success: boolean; message: string }> {
-  console.log(`[STUB] Updating price for ${productId} to $${newPrice}`);
+  if (!shopDomain || !encryptedToken) {
+    console.log(`[MOCK] Updating price for ${variantId} to $${newPrice}`);
+    return {
+      success: true,
+      message: `Price for ${variantId} updated to $${newPrice} (mock)`,
+    };
+  }
+
+  const { updateVariantPrice } = await import("../shopify-graphql");
+  const variant = await updateVariantPrice(
+    shopDomain,
+    encryptedToken,
+    variantId,
+    newPrice
+  );
   return {
     success: true,
-    message: `Price for ${productId} updated to $${newPrice.toFixed(2)} (stub)`,
+    message: `Price for ${variant.title} (${variant.id}) updated to $${variant.price}`,
   };
 }
 
@@ -139,16 +193,61 @@ export async function shopifyCreateDiscount(
 }
 
 // ============================================================
-// RESEARCH STUB TOOLS
+// RESEARCH TOOLS (real Serper.dev with mock fallback)
 // ============================================================
 
-export async function webSearch(query: string): Promise<object[]> {
-  console.log(`[STUB] Web search: "${query}"`);
-  return [
-    { title: `Market analysis: ${query}`, snippet: "15-20% growth in premium ecommerce. Price sensitivity decreasing for quality brands.", url: "https://example.com/market" },
-    { title: `Competitor pricing`, snippet: "Top competitors price 10-25% higher with bundles. Free shipping at $75 is optimal.", url: "https://example.com/competitors" },
-    { title: `Consumer trends`, snippet: "Q1 2026: strong demand for minimalist accessories. Social proof +40% conversion.", url: "https://example.com/trends" },
-  ];
+export async function webSearch(
+  query: string
+): Promise<Array<{ title: string; snippet: string; url: string }>> {
+  const apiKey = process.env.SERPER_API_KEY;
+
+  // Fallback to mock if no Serper key
+  if (!apiKey) {
+    console.log(`[MOCK] Web search: "${query}"`);
+    return [
+      {
+        title: `Market analysis: ${query}`,
+        snippet:
+          "Industry data suggests 15-20% growth in premium ecommerce segments.",
+        url: "https://example.com/market",
+      },
+      {
+        title: `Competitor pricing`,
+        snippet:
+          "Top competitors price 10-25% higher with bundle strategies.",
+        url: "https://example.com/competitors",
+      },
+      {
+        title: `Consumer trends`,
+        snippet:
+          "Q1 2026: strong demand for minimalist accessories.",
+        url: "https://example.com/trends",
+      },
+    ];
+  }
+
+  const response = await fetch("https://google.serper.dev/search", {
+    method: "POST",
+    headers: {
+      "X-API-KEY": apiKey,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ q: query, num: 5 }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Serper API error: ${response.status}`);
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const data: any = await response.json();
+  return ((data.organic || []) as Array<{ title?: string; snippet?: string; link?: string }>)
+    .slice(0, 5)
+    .map((r) => ({
+      title: r.title || "",
+      snippet: r.snippet || "",
+      url: r.link || "",
+    }));
 }
 
 export async function ragSearch(query: string, _userId?: string): Promise<object[]> {

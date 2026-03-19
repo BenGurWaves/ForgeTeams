@@ -9,6 +9,16 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        // Midnight Platinum — forge- prefix (canonical)
+        "forge-bg": "#0F0F0F",
+        "forge-surface": "#151515",
+        "forge-text": "#F5F5F5",
+        "forge-muted": "#A0A0A0",
+        "forge-accent": "#C9A96E",
+        "forge-accent-hover": "#D4B98A",
+        "forge-border": "#222222",
+
+        // Legacy aliases — other components still reference these
         bg: {
           primary: "#0F0F0F",
           secondary: "#151515",
