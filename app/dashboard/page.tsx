@@ -345,6 +345,22 @@ export default function DashboardPage() {
           </div>
         </section>
 
+        {/* Subscription notice */}
+        {!subscription && !loading && (
+          <div className="bg-forge-accent/5 border border-forge-accent/20 rounded-2xl p-5 flex items-center justify-between">
+            <div>
+              <p className="text-forge-text text-sm font-medium">Free trial active</p>
+              <p className="text-forge-muted text-xs mt-1">Upgrade to unlock unlimited agent runs and premium features.</p>
+            </div>
+            <Link
+              href="/pricing"
+              className="shrink-0 bg-forge-accent text-forge-bg px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-forge-accent-hover transition-colors"
+            >
+              View Plans
+            </Link>
+          </div>
+        )}
+
         {/* Mission Control */}
         <section>
           <h2 className="font-heading text-xl font-bold mb-2">

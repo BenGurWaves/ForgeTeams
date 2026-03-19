@@ -42,7 +42,8 @@ export default function AuthPage() {
       if (signInError) {
         setError(signInError.message);
       } else {
-        router.push("/dashboard");
+        const redirectTo = new URLSearchParams(window.location.search).get("redirect") || "/dashboard";
+        router.push(redirectTo);
       }
     }
 

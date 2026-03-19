@@ -32,6 +32,23 @@ export async function POST(request: NextRequest) {
     });
   }
 
+  // Check active subscription (allow free trial for now — skip if no subscription table yet)
+  const { data: subscription } = await supabase
+    .from("subscriptions")
+    .select("status, plan")
+    .eq("user_id", user.id)
+    .in("status", ["active", "trialing"])
+    .limit(1)
+    .single();
+
+  // In production, uncomment to enforce:
+  // if (!subscription) {
+  //   return new Response(
+  //     JSON.stringify({ error: "Active subscription required. Visit /pricing to subscribe." }),
+  //     { status: 403, headers: { "Content-Type": "application/json" } }
+  //   );
+  // }
+
   // Validate request body
   const body = await request.json();
   const parsed = TriggerSchema.safeParse(body);

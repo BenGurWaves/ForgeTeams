@@ -94,6 +94,9 @@ export default function LandingPage() {
             <a href="#testimonials" className="hover:text-text-primary transition-colors">
               Testimonials
             </a>
+            <a href="/pricing" className="hover:text-text-primary transition-colors">
+              Pricing
+            </a>
             <Link
               href="/auth"
               className="bg-accent text-bg-primary px-5 py-2 rounded-xl text-sm font-medium hover:bg-accent-hover transition-colors"
@@ -262,9 +265,11 @@ export default function LandingPage() {
       <footer className="border-t border-border py-8 px-6">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row justify-between items-center text-text-secondary text-xs">
           <span>ForgeTeams. Last updated: March 2026.</span>
-          <span className="mt-2 sm:mt-0">
-            Forge Your Autonomous AI Teams for eCommerce.
-          </span>
+          <div className="flex items-center gap-6 mt-2 sm:mt-0">
+            <Link href="/pricing" className="hover:text-text-primary transition-colors">Pricing</Link>
+            <Link href="/privacy" className="hover:text-text-primary transition-colors">Privacy</Link>
+            <Link href="/terms" className="hover:text-text-primary transition-colors">Terms</Link>
+          </div>
         </div>
       </footer>
     </main>

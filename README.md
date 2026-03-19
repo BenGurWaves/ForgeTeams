@@ -260,3 +260,82 @@ Yes. Every Supabase table uses Row Level Security. Each user only sees their own
 
 **Which Ollama model should I use?**
 `qwen3.5:4b` for fast iteration (3.4GB, ~110 t/s). `qwen3-coder:latest` for higher quality but slower (18GB).
+
+---
+
+## Go Public — Launch Checklist
+
+### 1. Switch Stripe to live mode
+
+```
+1. Stripe Dashboard → toggle "Test mode" OFF
+2. Create live products: Starter ($99), Pro ($299), Enterprise ($599)
+3. Copy live price IDs into your checkout route
+4. Update STRIPE_SECRET_KEY and NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY with live keys
+5. Create live webhook endpoint → copy signing secret to STRIPE_WEBHOOK_SECRET
+```
+
+### 2. Enable subscription enforcement
+
+In `app/api/trigger-agent/route.ts`, uncomment the subscription check block:
+
+```typescript
+if (!subscription) {
+  return new Response(
+    JSON.stringify({ error: "Active subscription required." }),
+    { status: 403, headers: { "Content-Type": "application/json" } }
+  );
+}
+```
+
+### 3. Deploy to Cloudflare
+
+```bash
+pnpm build:cf
+pnpm deploy
+```
+
+Set all secrets and env vars (see Cloudflare Deployment section above).
+
+### 4. Connect custom domain
+
+```
+1. Cloudflare Dashboard → Workers & Pages → forgeteams → Custom Domains
+2. Add forgeteams.com (or your domain)
+3. Update NEXT_PUBLIC_APP_URL to https://forgeteams.com
+4. Update Shopify app redirect URL to https://forgeteams.com/api/shopify/callback
+5. Update Stripe webhook URL to https://forgeteams.com/api/stripe/webhook
+```
+
+### 5. First 10 users — launch day playbook
+
+**Product Hunt:**
+- Title: "ForgeTeams — 5 AI Agents That Run Your Shopify Store"
+- Tagline: "Set a goal. Five autonomous agents research, plan, execute, review, and iterate until it is done."
+- First comment: explain the problem (Shopify owners drown in manual optimization), the solution (autonomous AI team), the tech (LangGraph, real Shopify API, BYOK).
+
+**Reddit (r/shopify, r/ecommerce, r/SideProject):**
+- Post title: "I built a tool that gives Shopify stores a 5-agent AI team — it actually changes your prices and runs campaigns"
+- Lead with a real result from your own test store
+- Offer first 10 commenters a 50% discount code (create in Stripe: LAUNCH50)
+
+**Indie Hackers:**
+- Post in "Show IH" with revenue goal and technical breakdown
+- Link to live demo or video walkthrough
+
+### 6. Post-launch monitoring
+
+```bash
+# Check Supabase for new signups
+# Stripe Dashboard → track MRR
+# Cloudflare Dashboard → check error rates
+# Supabase Dashboard → monitor RLS policy hits
+```
+
+### 7. First week priorities
+
+1. Monitor agent runs for errors (check `agent_runs` and `messages` tables)
+2. Respond to every support email within 4 hours
+3. Ship fixes daily based on user feedback
+4. Add usage metering to Stripe (track agent runs per user)
+5. Build the Shopify App Store listing (for broader distribution)
