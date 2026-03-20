@@ -2,9 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createServerClient } from "@/lib/supabase";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2025-02-24.acacia",
-});
+function getStripe() {
+  return new Stripe(process.env.STRIPE_SECRET_KEY!, {
+    apiVersion: "2025-02-24.acacia",
+  });
+}
 
 // Disable body parsing — Stripe needs the raw body for signature verification
 export const runtime = "nodejs";
@@ -34,7 +36,7 @@ export async function POST(request: NextRequest) {
   let event: Stripe.Event;
 
   try {
-    event = stripe.webhooks.constructEvent(rawBody, signature, webhookSecret);
+    event = getStripe().webhooks.constructEvent(rawBody, signature, webhookSecret);
   } catch (err) {
     const message =
       err instanceof Error ? err.message : "Signature verification failed";
@@ -69,7 +71,7 @@ export async function POST(request: NextRequest) {
 
         // Fetch the full subscription to get plan details
         const subscription =
-          await stripe.subscriptions.retrieve(subscriptionId);
+          await getStripe().subscriptions.retrieve(subscriptionId);
         const priceId = subscription.items.data[0]?.price?.id ?? null;
         const productId =
           typeof subscription.items.data[0]?.price?.product === "string"

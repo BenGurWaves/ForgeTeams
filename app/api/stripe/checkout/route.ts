@@ -3,9 +3,11 @@ import Stripe from "stripe";
 import { z } from "zod";
 import { createServerClient } from "@/lib/supabase";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2025-02-24.acacia",
-});
+function getStripe() {
+  return new Stripe(process.env.STRIPE_SECRET_KEY!, {
+    apiVersion: "2025-02-24.acacia",
+  });
+}
 
 const VALID_PLANS: Record<string, { name: string; monthlyPrice: number }> = {
   starter: { name: "Starter", monthlyPrice: 99 },
@@ -80,7 +82,7 @@ export async function POST(request: NextRequest) {
     customerId = existingSub.stripe_customer_id;
   } else {
     // Search Stripe by email
-    const existingCustomers = await stripe.customers.list({
+    const existingCustomers = await getStripe().customers.list({
       email: user.email,
       limit: 1,
     });
@@ -88,7 +90,7 @@ export async function POST(request: NextRequest) {
     if (existingCustomers.data.length > 0) {
       customerId = existingCustomers.data[0].id;
     } else {
-      const customer = await stripe.customers.create({
+      const customer = await getStripe().customers.create({
         email: user.email,
         metadata: { supabase_user_id: user.id },
       });
@@ -107,7 +109,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const session = await stripe.checkout.sessions.create({
+    const session = await getStripe().checkout.sessions.create({
       customer: customerId,
       mode: "subscription",
       payment_method_types: ["card"],
