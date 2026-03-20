@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createBrowserClient } from "@/lib/supabase";
@@ -14,6 +14,16 @@ export default function AuthPage() {
   const [message, setMessage] = useState("");
   const router = useRouter();
   const supabase = createBrowserClient();
+
+  // Redirect to dashboard if already logged in
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        const params = new URLSearchParams(window.location.search);
+        window.location.href = params.get("redirect") || "/dashboard";
+      }
+    });
+  }, [supabase]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -35,15 +45,18 @@ export default function AuthPage() {
         setMessage("Check your email to confirm your account, then sign in.");
       }
     } else {
-      const { error: signInError } = await supabase.auth.signInWithPassword({
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
       if (signInError) {
         setError(signInError.message);
-      } else {
+      } else if (data.session) {
+        // Set cookie so middleware allows access to protected routes
+        document.cookie = `sb-auth-token=${data.session.access_token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax; Secure`;
         const redirectTo = new URLSearchParams(window.location.search).get("redirect") || "/dashboard";
-        router.push(redirectTo);
+        window.location.href = redirectTo;
+        return;
       }
     }
 
