@@ -1,9 +1,13 @@
 import { createClient } from "@supabase/supabase-js";
 
+// Placeholder for build-time prerendering when env vars aren't available
+const PLACEHOLDER_URL = "https://placeholder.supabase.co";
+const PLACEHOLDER_KEY = "placeholder";
+
 // Browser client — uses anon key, respects RLS
 export function createBrowserClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || PLACEHOLDER_URL;
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || PLACEHOLDER_KEY;
 
   return createClient(url, anonKey);
 }
@@ -11,8 +15,8 @@ export function createBrowserClient() {
 // Server client — uses service role key, bypasses RLS
 // Only use in API routes and server actions
 export function createServerClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || PLACEHOLDER_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || PLACEHOLDER_KEY;
 
   return createClient(url, serviceKey, {
     auth: {

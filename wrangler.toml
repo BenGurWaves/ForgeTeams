@@ -4,8 +4,8 @@ compatibility_flags = ["nodejs_compat"]
 pages_build_output_dir = ".open-next"
 
 [vars]
-NEXT_PUBLIC_SUPABASE_URL = ""
-NEXT_PUBLIC_SUPABASE_ANON_KEY = ""
+NEXT_PUBLIC_SUPABASE_URL = "https://ldyevnrsucjdmjvvpvet.supabase.co"
+NEXT_PUBLIC_SUPABASE_ANON_KEY = "sb_publishable_PQc4sOMZM79VtDCycpdiyw_jaEc1gpu"
 
 # Secrets (set via `wrangler secret put`):
 # SUPABASE_SERVICE_ROLE_KEY
