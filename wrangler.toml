@@ -7,6 +7,10 @@ compatibility_flags = ["nodejs_compat"]
 directory = ".open-next/assets"
 binding = "ASSETS"
 
+[[routes]]
+pattern = "forgeteams.calyvent.com"
+custom_domain = true
+
 [vars]
 NEXT_PUBLIC_SUPABASE_URL = "https://ldyevnrsucjdmjvvpvet.supabase.co"
 NEXT_PUBLIC_SUPABASE_ANON_KEY = "sb_publishable_PQc4sOMZM79VtDCycpdiyw_jaEc1gpu"
